@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+env/
+venv/
+data/raw/*
+data/parsed/*
+logs/*
+.pytest_cache
+.ipynb_checkpoints

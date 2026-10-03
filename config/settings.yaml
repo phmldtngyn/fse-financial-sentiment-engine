@@ -1,0 +1,15 @@
+app:
+  name: "FSE Sentiment Index System"
+  version: "1.0.0"
+  env: "development"
+
+paths:
+  raw_data: "data/raw"
+  parsed_data: "data/parsed"
+  processed_data: "data/processed"
+  faiss_index: "data/embeddings/faiss_articles.index"
+
+crawler:
+  rate_limit_seconds: 2.0
+  max_retries: 3
+  timeout_seconds: 30

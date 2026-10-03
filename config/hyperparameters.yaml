@@ -1,0 +1,14 @@
+fse_model:
+  backbone: "VinAI/phobert-base-v2"
+  max_length: 512
+  embed_dim: 768
+  attention_heads: 4
+  
+training:
+  lr_backbone: 0.00002
+  lr_heads: 0.0001
+  batch_size: 16
+  max_epochs: 4
+  alpha_loss: 0.5
+  beta_loss: 0.3
+  lambda_kd: 0.2

@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  fse-pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fse-sentiment-system:latest
+    container_name: fse_pipeline_runner
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+    command: python scripts/run_daily_pipeline.py
