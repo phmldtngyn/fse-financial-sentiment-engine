@@ -1,0 +1,11 @@
+baseline_theta:
+  gamma: 1.75
+  lambda_decay: 0.60
+  mu: 0.05
+  alpha: 0.5
+
+novelty:
+  lookback_hours: 48
+  kappa: 2.0
+  sim_high_thresh: 0.85
+  sim_low_thresh: 0.30
