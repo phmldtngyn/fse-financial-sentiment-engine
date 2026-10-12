@@ -28,7 +28,10 @@ class FSEModel(nn.Module):
         super().__init__()
         # Tầng 1: Backbone Encoder
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.backbone = AutoModel.from_pretrained(model_name)
+        
+        # Bổ sung add_pooling_layer=False để báo cho Hugging Face KHÔNG tạo lớp pooler ngẫu nhiên,
+        # vì chúng ta sử dụng AttentionPooling riêng bên dưới.
+        self.backbone = AutoModel.from_pretrained(model_name, add_pooling_layer=False)
         
         # Tầng 2: Attention Pooling
         self.attention_pooling = AttentionPooling(hidden_size=768)
