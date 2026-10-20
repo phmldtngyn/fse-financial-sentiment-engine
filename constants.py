@@ -131,9 +131,4 @@ TRAINING_HYPERPARAMS: Final[Dict[str, float]] = {
     "max_epochs": 4,
     "alpha_loss": 0.5,    # Trọng số L_MSE (NSS) [Mục IV.3]
     "beta_loss": 0.3,     # Trọng số L_CE (Tier) [Mục IV.3]
-    "lambda_kd_loss": 0.2 # Trọng số L_KD (Knowledge Distillation) [Mục IV.3]
 }
-
-# Ngưỡng đồng thuận Multi-Teacher Ensemble (Consensus Filtering) [Mục IV.2.2]
-CONSENSUS_MAX_STD_DEV: Final[float] = 0.25
-NEUTRAL_ZONE_BOUNDS: Final[tuple] = (-0.05, 0.05)

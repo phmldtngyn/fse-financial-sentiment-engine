@@ -6,7 +6,7 @@
 ![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-green.svg)
 ![License](https://img.shields.io/badge/License-Academic-lightgrey.svg)
 
-Hệ thống định lượng hóa **Chỉ số Cảm xúc Dòng tiền Thị trường ($S_t$)** từ tin tức tài chính tiếng Việt thuộc ngành Ngân hàng (27 mã cổ phiếu niêm yết). Hệ thống tích hợp mô hình học sâu **FSE (Financial Sentiment Encoder)** dựa trên PhoBERT-base, cơ chế Tri thức Đa Giáo viên (Multi-Teacher Knowledge Distillation), tìm kiếm vector tương đồng (FAISS) và các lý thuyết tài chính hành vi (Prospect Theory, Memory Decay, Intraday Time Decay).
+Hệ thống định lượng hóa **Chỉ số Cảm xúc Dòng tiền Thị trường ($S_t$)** từ tin tức tài chính tiếng Việt thuộc ngành Ngân hàng (27 mã cổ phiếu niêm yết). Hệ thống tích hợp mô hình học sâu **FSE (Financial Sentiment Encoder)** dựa trên PhoBERT-base-v2, huấn luyện bằng Supervised Fine-Tuning trên gold standard tự xây dựng, tìm kiếm vector tương đồng (FAISS) và các lý thuyết tài chính hành vi (Prospect Theory, Memory Decay, Intraday Time Decay).
 
 ---
 
@@ -44,12 +44,11 @@ Mô hình FSE xử lý văn bản thô theo 03 tầng:
   1. *Sentiment Regression Head*: Xuất điểm cảm xúc ròng $NSS_j \in [-1, 1]$ qua hàm $\tanh$.
   2. *Relevance Tier Head (CORAL Ordinal Regression)*: Dự đoán phân tầng mức độ liên quan $Tier_j \in \{1, 2, 3, 4\}$.
 
-### 2. Qúa trình Huấn luyện: DAPT & Multi-Teacher Distillation
-* **Domain-Adaptive Pre-training (DAPT)**: Masked Language Modeling (MLM) trên corpus tin tức tài chính tiếng Việt.
-* **Multi-Teacher Ensemble**: Sử dụng GPT-4o, Claude 3.5 Sonnet và Gemini 1.5 Pro gán nhãn cho 20,000 bài báo.
-* **Consensus Filtering**: Chỉ giữ lại các mẫu có độ lệch chuẩn $\sigma \le 0.25$ và thống nhất về dấu cảm xúc.
-* **Knowledge Distillation**: Huấn luyện FSE bằng hàm mất mát tổng hợp:
-  $$L_{\text{total}} = \alpha \cdot L_{\text{MSE}} + \beta \cdot L_{\text{CE}} + \lambda_{\text{KD}} \cdot L_{\text{KD}}$$
+### 2. Quá trình Huấn luyện: Supervised Fine-Tuning
+
+* **Gold standard 2.000 câu**: gán nhãn sơ bộ bằng Claude 3.5 Sonnet, tác giả spot-check 20% (400 câu), agreement rate ghi trong báo cáo.
+
+* **Supervised Fine-Tuning**: huấn luyện PhoBERT-base-v2 với hàm mất mát kết hợp:
 
 ### 3. Không gian Vector, Novelty & Decay
 * **Độ trùng lặp (Redundancy - $Sim_j$)**: Độ tương đồng Cosine cực đại trong cửa sổ 48 giờ quá khứ sử dụng FAISS Vector DB.
@@ -81,7 +80,7 @@ fse-sentiment-index/
 │   └── embeddings/                 # FAISS vector index files
 ├── src/                            # Source code chính
 │   ├── crawler/                    # Discovery, Fetcher (Playwright), Parser, Dedup
-│   ├── models/                     # Backbone, Attention Pooling, Heads, FSE, Distillation
+│   ├── models/                     # Backbone, Attention Pooling, Heads, FSE
 │   ├── storage/                    # SQLAlchemy models & FAISS Vector Store wrapper
 │   ├── index_engine/               # Novelty, Weights, Intraday Decay, Behavioral, Aggregator
 │   ├── optimization/               # MCDM Entropy Weight, Objective, Sequential Optimizer
@@ -143,7 +142,7 @@ python -m src.crawler.pipeline --sources cafef,vietstock,vneconomy,vietnamfinanc
 ```
 
 ### 2. Huấn luyện Mô hình FSE
-Thực hiện quá trình Fine-tuning FSE với Distillation từ Multi-Teacher Ensemble:
+Thực hiện quá trình Supervised Fine-Tuning trực tiếp trên gold standard:
 ```bash
 python scripts/train_fse.py --config config/hyperparameters.yaml
 ```
@@ -177,7 +176,6 @@ Mô hình và Chỉ số $S_t$ bắt buộc phải thỏa mãn các tiêu chí k
 | :--- | :--- | :--- |
 | **Sentiment Regression** | Pearson Correlation / MAE | $\ge 0.70$ / $\le 0.15$ |
 | **Tier Classification** | F1-macro / MAE (ordinal) | $\ge 0.75$ / $\le 0.30$ |
-| **Knowledge Distillation** | KL Divergence | $\le 0.10$ |
 | **Tính dừng (Stationarity)** | ADF Test / PP Test | $p \text{-value} \le 0.05$ |
 | **Quan hệ Nhân quả** | Granger Causality ($S_t \to R_t$) | $p \text{-value} \le 0.05$ |
 | **Tác động Biến động** | EGARCH-X / VAR | R² $\ge 0.30$ |
@@ -192,7 +190,7 @@ python -m tests.evaluate_gold_standard
 ## 🗺 Lộ trình Phát triển (Roadmap)
 
 * [x] **Giai đoạn 1**: Xây dựng Corpus chuyên biệt 27 Ngân hàng, hoàn thiện Crawler Playwright & Baseline MCDM cho SourceCredibility.
-* [x] **Giai đoạn 2**: Đóng băng trọng số FSE v1.0, tích hợp Attention Pooling và Distillation từ Ensemble GPT-4o / Claude 3.5 / Gemini 1.5 Pro.
+* [x] **Giai đoạn 2**: Đóng băng trọng số FSE v1.0, tích hợp Attention Pooling và Supervised Fine-Tuning trên gold standard 2.000 câu.
 * [ ] **Giai đoạn 3**: Nâng cấp FSE lên **Aspect-Based Sentiment Analysis (ABSA)**, bóc tách điểm cảm xúc ròng theo từng mã Ticker riêng biệt trong cùng một bài báo.
 * [ ] **Giai đoạn 4**: Tích hợp Real-time Optimization Engine và đẩy dữ liệu $S_t$ tự động vào hệ thống giao dịch thuật toán (Algorithmic Trading System).
 
