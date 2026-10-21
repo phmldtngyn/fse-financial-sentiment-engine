@@ -12,3 +12,14 @@ training:
   alpha_loss: 0.5
   beta_loss: 0.3
   lambda_kd: 0.2
+  
+fse:
+  backbone: VinAI/phobert-base-v2
+  num_tiers: 3
+  max_len: 256
+  batch_size: 16
+  epochs: 5
+  lr: 2.0e-5
+  lambda_mse: 1.0
+  lambda_ce: 0.5
+  checkpoint_dir: checkpoints/fse_sft

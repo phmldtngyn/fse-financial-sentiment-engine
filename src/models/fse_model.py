@@ -94,3 +94,20 @@ class FSEModel(nn.Module):
         
         # Chuyển đổi an toàn về NumPy bằng detach().cpu().numpy()
         return v_article.detach().cpu().numpy(), nss_score, tier_pred
+    def forward_batch(self, input_ids, attention_mask):
+        """Batch forward cho SFT training — câu ngắn, không chunk.
+
+        Khác với forward() (dùng cho inference bài báo dài, có attention pooling):
+        - Nhận batch tensors đã tokenized (B, L)
+        - Không chunk, không attention pooling
+        - Dùng [CLS] token trực tiếp từ backbone
+
+        Returns:
+            nss_logit: (B,) — raw sentiment logit
+            tier_logits: (B, 3) — raw tier logits
+        """
+        outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
+        cls = outputs.last_hidden_state[:, 0, :]  # (B, 768)
+        nss_logit = self.sentiment_head(cls).squeeze(-1)  # (B,)
+        tier_logits = self.tier_head(cls)  # (B, 3)
+        return nss_logit, tier_logits
