@@ -1,17 +1,31 @@
-version: '3.8'
-
 services:
-  fse-pipeline:
+  api:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: fse-sentiment-system:latest
-    container_name: fse_pipeline_runner
-    environment:
-      - PYTHONUNBUFFERED=1
-      - CUDA_VISIBLE_DEVICES=0
+      dockerfile: Dockerfile.api
+    container_name: fse-api
+    ports:
+      - "8000:8000"
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./config:/app/config
-    command: python scripts/run_daily_pipeline.py
+      - ./checkpoints:/app/checkpoints
+      - ./data/rag_index:/app/data/rag_index
+      - ./data/processed:/app/data/processed
+      - ./.hf_cache:/app/.hf_cache
+    environment:
+      - HF_HOME=/app/.hf_cache
+      - TRANSFORMERS_CACHE=/app/.hf_cache
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: fse-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

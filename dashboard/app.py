@@ -5,8 +5,8 @@ Mở: http://localhost:8501
 """
 import streamlit as st
 import httpx
-
-API = "http://localhost:8000"
+import os
+API = os.getenv("API_URL", "http://localhost:8000")
 
 st.set_page_config(
     page_title="FSE Engine",
