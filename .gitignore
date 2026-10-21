@@ -1,31 +1,42 @@
-@"
-# === CHẶN BẮT BUỘC (file lớn > 100MB) ===
-venv/
-.venv/
-env/
-data/raw/
+$lines = @(
+'# === File lớn, không commit ==='
+'venv/'
+'.venv/'
+'env/'
+'data/raw/'
+'checkpoints/'
+'.hf_cache/'
+'.cache/'
+'*.pt'
+'*.pth'
+'*.bin'
+'*.safetensors'
+''
+'# === Data runtime (không commit) ==='
+'data/parsed/*.json'
+'data/processed/*.json'
+'data/crawler_state.json'
+'data/gold_standard/'
+'data/rag_index/index.faiss'
+''
+'# === Ngoại lệ (commit các file quan trọng) ==='
+'!data/processed/gold_full.parquet'
+'!data/processed/dummy_market.parquet'
+'!data/processed/train.parquet'
+'!data/processed/val.parquet'
+'!data/processed/test.parquet'
+''
+'# === IDE, OS, cache ==='
+'__pycache__/'
+'*.py[cod]'
+'.vscode/'
+'.idea/'
+'.DS_Store'
+'Thumbs.db'
+'.env'
+'*.env'
+)
+Set-Content -Path .gitignore -Value $lines -Encoding utf8
+Get-Content .gitignoredata/raw/
 checkpoints/
-.hf_cache/
-.cache/
 *.pt
-*.pth
-*.bin
-*.safetensors
-
-# === CHẶN NHẸ (rác IDE, OS) ===
-__pycache__/
-*.py[cod]
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-.env
-*.env
-
-# === CHO PHÉP COMMIT (data nhỏ) ===
-# data/processed/*.parquet  (KHÔNG ignore — commit hết)
-# data/gold/*.csv           (KHÔNG ignore)
-# data/parsed/*.json        (KHÔNG ignore)
-# data/crawler_state.json   (KHÔNG ignore)
-# data/rag_index/           (KHÔNG ignore — index ~100MB có thể vượt, check)
-"@ | Out-File -FilePath .gitignore -Encoding utf8
