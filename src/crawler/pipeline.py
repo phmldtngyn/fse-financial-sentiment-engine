@@ -65,6 +65,7 @@ async def run_pipeline(sources: list):
         json.dump(valid_articles, f, ensure_ascii=False, indent=4)
         
     logger.info(f"Hoàn thành Pipeline. Đã lưu {len(valid_articles)} bài báo tại {save_path}")
+    dedup.save()  # persist dedup state cho lần chạy sau
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="FSE Crawler Pipeline")
