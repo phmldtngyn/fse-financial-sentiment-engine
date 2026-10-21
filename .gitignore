@@ -1,63 +1,31 @@
 @"
-# === Python ===
-__pycache__/
-*.py[cod]
-*.so
-.Python
-build/
-dist/
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# === Virtual environment ===
+# === CHẶN BẮT BUỘC (file lớn > 100MB) ===
 venv/
 .venv/
 env/
-ENV/
-
-# === Environment variables ===
-.env
-*.env
-.env.*
-
-# === IDE ===
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# === OS ===
-.DS_Store
-Thumbs.db
-
-# === Data files ===
 data/raw/
-data/parsed/*.json
-data/processed/*.json
-data/processed/*.parquet
-data/embeddings/
-data/gold/batch_*.csv
-data/gold/raw_claude_*.txt
-data/gold/all_sampled.csv
-data/gold/for_review.xlsx
-
-# Ngoại lệ: commit gold standard cố định
-!data/processed/gold_full.parquet
-
-# === Model checkpoints ===
 checkpoints/
-models/checkpoints/
+.hf_cache/
+.cache/
 *.pt
 *.pth
 *.bin
 *.safetensors
 
-# === Kaggle cache ===
-.cache/
+# === CHẶN NHẸ (rác IDE, OS) ===
+__pycache__/
+*.py[cod]
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.env
+*.env
 
-# === Logs ===
-*.log
-logs/
-"@ | Out-File -FilePath .gitignore -Encoding utf8 -Forcedata/crawler_state.json
+# === CHO PHÉP COMMIT (data nhỏ) ===
+# data/processed/*.parquet  (KHÔNG ignore — commit hết)
+# data/gold/*.csv           (KHÔNG ignore)
+# data/parsed/*.json        (KHÔNG ignore)
+# data/crawler_state.json   (KHÔNG ignore)
+# data/rag_index/           (KHÔNG ignore — index ~100MB có thể vượt, check)
+"@ | Out-File -FilePath .gitignore -Encoding utf8
