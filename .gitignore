@@ -60,4 +60,4 @@ models/checkpoints/
 # === Logs ===
 *.log
 logs/
-"@ | Out-File -FilePath .gitignore -Encoding utf8 -Force
+"@ | Out-File -FilePath .gitignore -Encoding utf8 -Forcedata/crawler_state.json
