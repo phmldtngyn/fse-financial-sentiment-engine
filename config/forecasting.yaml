@@ -1,0 +1,30 @@
+forecasting:
+  target: log_vol              # hoặc 'vol' để dự báo trực tiếp
+  window_train_days: 180       # training window
+  window_val_days: 30          # validation window
+  window_test_days: 30         # test window per fold
+  step_days: 30                # bước trượt giữa các fold
+  min_train_samples: 100       # bỏ fold nếu train < min
+
+models:
+  linear_regression:
+    fit_intercept: true
+  decision_tree:
+    max_depth: 8
+    min_samples_leaf: 5
+  knn:
+    n_neighbors: 5
+    weights: distance
+  ann_mlp:
+    hidden_layers: [64, 32]
+    dropout: 0.2
+    epochs: 100
+    batch_size: 32
+    lr: 0.001
+    early_stopping_patience: 10
+
+ablation:
+  scenarios:
+    A: [vol_lag, return_lag]                          # market only
+    B: [vol_lag, return_lag, S_t, delta_S_t]          # + sentiment
+    C: [vol_lag, return_lag, S_t, delta_S_t, v_ctx]   # + RAG context
