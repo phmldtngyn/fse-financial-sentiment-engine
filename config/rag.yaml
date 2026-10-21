@@ -1,0 +1,17 @@
+embedder:
+  model_name: keepitreal/vietnamese-sbert
+  dim: 768
+  batch_size: 32
+  max_seq_length: 256
+
+index:
+  dir: data/rag_index
+  window_days: 30
+  rebuild_interval_hours: 6
+
+retriever:
+  top_k: 20              # candidates từ FAISS
+  top_m: 5               # kết quả cuối sau rerank
+  window_hours: 168      # 7 ngày
+  alpha: 0.6             # trọng số similarity (vs recency)
+  lambda_decay: 0.05     # tốc độ giảm trọng số theo thời gian
