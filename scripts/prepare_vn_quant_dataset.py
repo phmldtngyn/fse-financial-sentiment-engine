@@ -76,8 +76,7 @@ def join_by_title(sentiment: pd.DataFrame, news: pd.DataFrame) -> pd.DataFrame:
 def normalize_and_clean(df: pd.DataFrame) -> pd.DataFrame:
     """Chuẩn hóa score, lọc câu lỗi."""
     # Chuẩn hóa score: [0, 1] → [-1, 1]
-    df["score"] = (df["Sentiment_Score"].astype(float) * 2 - 1).clip(-1.0, 1.0)
-
+    df["score"] = df["Sentiment_Score"].astype(float).clip(-1.0, 1.0)
     # Lọc câu quá ngắn hoặc Content null
     before = len(df)
     df = df.dropna(subset=["Content", "score"])
@@ -89,7 +88,18 @@ def normalize_and_clean(df: pd.DataFrame) -> pd.DataFrame:
     # Có thể refine sau: nếu Title/Content chứa mã cổ phiếu → tier=3, còn không → tier=2
     df["tier"] = 3
 
-    return df[["Title", "Content", "score", "tier"]].reset_index(drop=True)
+    # Gộp Title + Content → text, truncate 800 chars (~200 token)
+    df["text"] = (
+        df["Title"].fillna("").astype(str).str.strip()
+        + " . "
+        + df["Content"].fillna("").astype(str).str.strip()
+    ).str[:800].str.strip()
+
+    # Filter text quá ngắn
+    df = df[df["text"].str.len() >= 50].reset_index(drop=True)
+    print(f"After text normalization: {len(df):,} rows")
+
+    return df[["text", "score", "tier"]].reset_index(drop=True)
 
 
 def main():
@@ -126,8 +136,8 @@ def main():
     print(f"  Rất tích cực [ 0.5, 1.0]: {(df['score'] >= 0.5).sum():,}")
 
     print(f"\nContent length (chars):")
-    print(f"  Mean: {df['Content'].str.len().mean():.0f}")
-    print(f"  Max:  {df['Content'].str.len().max():,}")
+    print(f"  Mean: {df['text'].str.len().mean():.0f}")
+    print(f"  Max:  {df['text'].str.len().max():,}")
 
     if args.write:
         # 5. Split 80/10/10

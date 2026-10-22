@@ -1,42 +1,56 @@
-$lines = @(
-'# === File lớn, không commit ==='
-'venv/'
-'.venv/'
-'env/'
-'data/raw/'
-'checkpoints/'
-'.hf_cache/'
-'.cache/'
-'*.pt'
-'*.pth'
-'*.bin'
-'*.safetensors'
-''
-'# === Data runtime (không commit) ==='
-'data/parsed/*.json'
-'data/processed/*.json'
-'data/crawler_state.json'
-'data/gold_standard/'
-'data/rag_index/index.faiss'
-''
-'# === Ngoại lệ (commit các file quan trọng) ==='
-'!data/processed/gold_full.parquet'
-'!data/processed/dummy_market.parquet'
-'!data/processed/train.parquet'
-'!data/processed/val.parquet'
-'!data/processed/test.parquet'
-''
-'# === IDE, OS, cache ==='
-'__pycache__/'
-'*.py[cod]'
-'.vscode/'
-'.idea/'
-'.DS_Store'
-'Thumbs.db'
-'.env'
-'*.env'
-)
-Set-Content -Path .gitignore -Value $lines -Encoding utf8
-Get-Content .gitignoredata/raw/
+$content = @'
+# === Python compiled ===
+*.pyc
+*.pyo
+__pycache__/
+
+# === Virtual env ===
+venv/
+.venv/
+env/
+
+# === Env / secrets ===
+.env
+*.env
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === File lớn, không commit ===
+data/raw/
 checkpoints/
+.hf_cache/
+.cache/
 *.pt
+*.pth
+*.bin
+*.safetensors
+
+# === Data runtime (không commit) ===
+data/parsed/*.json
+data/processed/*.json
+data/processed/*.parquet
+data/processed/*.pkl
+data/crawler_state.json
+data/gold_standard/
+data/rag_index/index.faiss
+fse_3class.zip
+fse_data.zip
+fse_dapt.zip
+
+# === Ngoại lệ: giữ 3 file 3-class ===
+!data/processed/train_3class.parquet
+!data/processed/val_3class.parquet
+!data/processed/test_3class.parquet
+
+# === Logs ===
+*.log
+logs/
+'@
+Set-Content -Path .gitignore -Value $content -Encoding utf8 -NoNewline

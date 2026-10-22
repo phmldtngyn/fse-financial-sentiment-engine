@@ -1,22 +1,30 @@
+"""Loss cho 3-class sentiment classification."""
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
-class FSELoss(nn.Module):
-    """Combined loss cho SFT: λ₁·MSE(score) + λ₂·CrossEntropy(tier).
+class FSELoss3Class(nn.Module):
+    """CrossEntropy với class weights để xử lý imbalance.
 
-    - MSE: hồi quy score cảm xúc liên tục ∈ [-1, 1]
-    - CE:  phân loại tier ∈ {0, 1, 2} (0-indexed từ dataset)
+    Default weights từ train distribution (12% neg / 66% neu / 22% pos):
+    - negative: 2.75 (hiếm → weight cao)
+    - neutral:  0.50 (nhiều → weight thấp)
+    - positive: 1.54
     """
 
-    def __init__(self, lambda_mse=1.0, lambda_ce=0.5):
+    def __init__(self, class_weights=None):
         super().__init__()
-        self.lm = lambda_mse
-        self.lc = lambda_ce
-        self.mse = nn.MSELoss()
+        if class_weights is None:
+            class_weights = [2.75, 0.50, 1.54]
+        self.register_buffer(
+            "class_weights",
+            torch.tensor(class_weights, dtype=torch.float),
+        )
 
-    def forward(self, score_pred, tier_logits, score_true, tier_true):
-        l_mse = self.mse(score_pred, score_true)
-        l_ce = F.cross_entropy(tier_logits, tier_true)
-        total = self.lm * l_mse + self.lc * l_ce
-        return total, {"mse": l_mse.item(), "ce": l_ce.item()}
+    def forward(self, logits, labels):
+        """logits: (B, 3), labels: (B,) long. Returns (loss, dict)."""
+        loss = F.cross_entropy(
+            logits, labels, weight=self.class_weights.to(logits.device)
+        )
+        return loss, {"ce": loss.item()}

@@ -15,11 +15,8 @@ training:
   
 fse:
   backbone: VinAI/phobert-base-v2
-  num_tiers: 3
   max_len: 256
-  batch_size: 16
+  batch_size: 32
   epochs: 5
   lr: 2.0e-5
-  lambda_mse: 1.0
-  lambda_ce: 0.5
   checkpoint_dir: checkpoints/fse_sft

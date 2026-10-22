@@ -1,4 +1,4 @@
-"""Endpoint: POST /sentiment — chấm điểm cảm xúc từ text."""
+"""Endpoint: POST /sentiment — 3-class sentiment classification."""
 import torch
 from fastapi import APIRouter, HTTPException
 from transformers import AutoTokenizer
@@ -10,9 +10,13 @@ router = APIRouter()
 
 _state = {}
 
+# Class 0=negative, 1=neutral, 2=positive
+CLASS_NAMES = ["negative", "neutral", "positive"]
+# Map class → pseudo-score để tương thích dashboard cũ
+CLASS_TO_SCORE = {0: -0.7, 1: 0.0, 2: 0.7}
+
 
 def load():
-    """Load model 1 lần khi startup."""
     ckpt_path = "checkpoints/fse_sft/best.pt"
     backbone = "VinAI/phobert-base-v2"
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -25,6 +29,9 @@ def load():
         print(f"[sentiment] Loaded SFT checkpoint: {ckpt_path}")
     except FileNotFoundError:
         print(f"[sentiment] ⚠️  No checkpoint at {ckpt_path}, using random heads")
+    except RuntimeError as e:
+        print(f"[sentiment] ⚠️  Checkpoint incompatible (old regression format): {e}")
+        print(f"[sentiment]    → Using random head. Train 3-class model to fix.")
     model.to(device).eval()
 
     _state["tok"] = tok
@@ -47,11 +54,12 @@ def predict_sentiment(req: SentimentRequest):
     ).to(device)
 
     with torch.no_grad():
-        nss_logit, tier_logits = model.forward_batch(
-            enc["input_ids"], enc["attention_mask"],
-        )
+        logits = model.forward_batch(enc["input_ids"], enc["attention_mask"])
 
-    score = float(torch.tanh(nss_logit).cpu())
-    tier = int(tier_logits.argmax(-1).cpu()) + 1
+    probs = torch.softmax(logits, dim=-1)[0]
+    cls = int(logits.argmax(-1).item())
+    confidence = float(probs[cls].item())
+    score = CLASS_TO_SCORE[cls]
 
-    return SentimentResponse(score=round(score, 4), tier=tier)
+    # Tier giữ = 3 (không còn tier head) để dashboard không phải sửa
+    return SentimentResponse(score=score, tier=3)
