@@ -27,24 +27,40 @@ def build_features(df: pd.DataFrame, target: str = "log_vol",
     # Target
     if target == "log_vol":
         df["y"] = np.log1p(df["vol"])
+    elif target == "volatility":
+        df["y"] = df["return"].abs()
+    elif target == "volatility_sq":
+        df["y"] = df["return"] ** 2
+    elif target == "return":
+        df["y"] = df["return"]
     else:
         df["y"] = df["vol"]
 
-    # Scenario features
-    base = ["vol_lag", "return_lag"]
+    # Lag features — dùng volatility_lag cho target volatility
+    if target in ("volatility", "volatility_sq"):
+        df["volatility_lag"] = df["return"].abs().shift(1)
+        df["volatility_lag_5d"] = df["return"].rolling(5).std().shift(1)
+        base = ["volatility_lag", "volatility_lag_5d", "return_lag"]
+    else:
+        base = ["vol_lag", "return_lag"]
+    # |S_t| là signal độc lập (magnitude of sentiment)
+    if "abs_S_t" not in df.columns:
+        df["abs_S_t"] = df["S_t"].abs()
+    if "abs_delta_S_t" not in df.columns:
+        df["abs_delta_S_t"] = df["delta_S_t"].abs()
+
     if scenario == "A":
         feat_cols = base
     elif scenario == "B":
-        feat_cols = base + ["S_t", "delta_S_t"]
+        feat_cols = base + ["S_t", "delta_S_t", "abs_S_t", "abs_delta_S_t"]
     elif scenario == "C":
         v_ctx_cols = [c for c in df.columns if c.startswith("v_ctx_")]
         if not v_ctx_cols and "v_ctx" in df.columns:
-            # Nếu v_ctx là cột chứa array
             v_ctx_arr = np.stack(df["v_ctx"].values)
             for i in range(v_ctx_arr.shape[1]):
                 df[f"v_ctx_{i}"] = v_ctx_arr[:, i]
             v_ctx_cols = [f"v_ctx_{i}" for i in range(v_ctx_arr.shape[1])]
-        feat_cols = base + ["S_t", "delta_S_t"] + v_ctx_cols
+        feat_cols = base + ["S_t", "delta_S_t", "abs_S_t", "abs_delta_S_t"] + v_ctx_cols
     else:
         raise ValueError(f"Unknown scenario: {scenario}")
 

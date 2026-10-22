@@ -1,5 +1,5 @@
 forecasting:
-  target: log_vol              # hoặc 'vol' để dự báo trực tiếp
+  target: volatility              # hoặc 'vol' để dự báo trực tiếp
   window_train_days: 180       # training window
   window_val_days: 30          # validation window
   window_test_days: 30         # test window per fold
