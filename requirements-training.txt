@@ -1,0 +1,10 @@
+# Phụ thuộc BỔ SUNG cho quy trình training tự động (cài thêm vào requirements.txt hiện có)
+#   pip install -r requirements-training.txt
+#
+# Lưu ý: torch / transformers / pandas / scikit-learn / pyyaml đã có trong
+# requirements.txt gốc của repo — không lặp lại ở đây.
+
+mlflow>=2.14          # experiment tracking local (UI: mlflow ui --backend-store-uri ./mlruns)
+underthesea>=6.8      # word segmentation tự động cho PhoBERT
+pyarrow>=14           # đọc/ghi parquet cho pandas
+tqdm>=4.66            # thanh tiến trình khi tách từ

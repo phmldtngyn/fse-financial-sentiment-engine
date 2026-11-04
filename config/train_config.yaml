@@ -1,0 +1,83 @@
+# ============================================================
+# Cấu hình huấn luyện FSE Financial Sentiment Engine (bản chuẩn hóa)
+#
+# Thay thế cho config/hyperparameters.yaml. Điểm khác quan trọng:
+#   - ĐÃ XÓA block "fse_model" (lambda_kd / alpha_loss / beta_loss) —
+#     phần sót lại của pipeline distillation multi-teacher đã bị gỡ
+#     (commit "cleanup teacher API, distillation, old data").
+#   - Một block duy nhất, mọi đường dẫn đều tương đối so với root repo.
+#
+# Chạy từ thư mục gốc repo:
+#   python -m src.training.train_fse_sft --config config/train_config.yaml
+#   python -m scripts.retrain_orchestrator --config config/train_config.yaml
+# ============================================================
+
+data:
+  processed_dir: data/processed
+  train_file: train_3class.parquet
+  val_file: val_3class.parquet
+  test_file: test_3class.parquet
+  text_col: text
+  label_col: label
+  # Đặt tên cột ngày (vd "date") nếu parquet có → bật kiểm tra split theo thời gian.
+  # null → pipeline cảnh báo rằng không thể xác minh split theo thời gian.
+  date_col: null
+  min_text_chars: 10        # bỏ câu quá ngắn trước khi train
+
+segmentation:
+  # PhoBERT YÊU CẦU văn bản đã tách từ (dạng "ngan_hang_viet_nam").
+  #   auto = phát hiện tự động: nếu dữ liệu chưa tách từ thì tự chạy underthesea (có cache)
+  #   on   = luôn tách từ, bất kể phát hiện thế nào
+  #   off  = dữ liệu đã pre-segmented, bỏ qua hoàn toàn
+  mode: auto
+  backend: underthesea
+  cache_dir: data/cache/segmentation
+
+model:
+  backbone: VinAI/phobert-base-v2
+  num_labels: 3             # 0=negative, 1=neutral, 2=positive
+  max_len: 256
+  # Tùy chọn: import path tới hàm dựng model tùy chỉnh, vd "src.models.fse_model:build_model"
+  # Hàm phải có dạng build_model(cfg_model_dict) -> nn.Module nhận (input_ids, attention_mask) trả logits.
+  # null → dùng AutoModelForSequenceClassification (head phân loại chuẩn của HuggingFace).
+  factory: null
+
+training:
+  lr: 2.0e-5
+  weight_decay: 0.01
+  batch_size: 32
+  epochs: 5
+  warmup_ratio: 0.1
+  grad_clip: 1.0
+  amp: true                 # mixed precision — chỉ kích hoạt khi có GPU, CPU tự tắt
+  num_workers: 2
+  label_smoothing: 0.05     # đặt 0 để tắt; KHÔNG dùng đồng thời với focal_loss
+  focal_loss: false         # true → focal loss (giúp lớp negative hiếm, ~12%)
+  focal_gamma: 2.0
+  # auto = tính nghịch đảo tần suất từ tập train mỗi lần retrain (không còn hardcode)
+  # hoặc ghi đè thủ công, vd [2.75, 0.5, 1.54]
+  class_weights: auto
+  early_stopping:
+    metric: val_f1_macro
+    patience: 3             # dừng nếu F1 không tăng sau 3 epoch
+    min_delta: 0.001
+
+seeds: [42, 7, 2026]        # chạy 3 seed, chọn model theo val F1, báo cáo mean ± std
+
+mlflow:
+  enabled: true
+  tracking_uri: ./mlruns
+  experiment_name: fse_sentiment
+  run_name_prefix: sft
+
+output:
+  checkpoint_dir: checkpoints/fse_sft
+  # Kết quả cuối: checkpoint_dir/selected/best.pt + eval_report.json (test set)
+  # + training_summary.json (kết quả cả 3 seed)
+  report_dir: reports/training
+
+promote:                    # dùng bởi scripts/retrain_orchestrator.py
+  metric: test_f1_macro
+  margin: 0.01              # challenger phải tốt hơn champion ít nhất 1 điểm F1 mới được thay
+  production_dir: checkpoints/production
+  keep_versions: 3          # số bản champion cũ giữ lại trong history/ để rollback
