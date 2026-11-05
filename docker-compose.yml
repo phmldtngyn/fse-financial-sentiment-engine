@@ -1,3 +1,15 @@
+# ============================================================
+# docker-compose sửa lỗi cho fse-financial-sentiment-engine
+#
+# Khác bản cũ:
+# 1. api CÓ HEALTHCHECK (bản cũ dashboard depends_on service_healthy nhưng
+#    api không định nghĩa healthcheck → dashboard có thể không bao giờ start).
+#    Yêu cầu: thêm route /health vào api/main.py (xem README mục 3).
+# 2. Thêm service scheduler chạy các job định kỳ (config/scheduler.yaml).
+# 3. Secrets/env qua .env (không hardcode), tham khảo .env.example.
+# 4. Bỏ mount data/rag_index — RAG đã ngừng hoạt động (xem quyết định audit).
+# ============================================================
+
 services:
   api:
     build:
@@ -8,12 +20,20 @@ services:
       - "8000:8000"
     volumes:
       - ./checkpoints:/app/checkpoints
-      - ./data/rag_index:/app/data/rag_index
-      - ./data/processed:/app/data/processed
+      - ./data:/app/data
       - ./.hf_cache:/app/.hf_cache
     environment:
       - HF_HOME=/app/.hf_cache
       - TRANSFORMERS_CACHE=/app/.hf_cache
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - FSE_DB=${FSE_DB:-data/fse.db}
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s     # PhoBERT load lúc startup cần thời gian
     restart: unless-stopped
 
   dashboard:
@@ -25,7 +45,27 @@ services:
       - "8501:8501"
     environment:
       - API_URL=http://api:8000
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
     depends_on:
       api:
         condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile.api      # cùng môi trường python như api
+    container_name: fse-scheduler
+    command: python -m scripts.scheduled_jobs
+    volumes:
+      - ./checkpoints:/app/checkpoints
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./mlruns:/app/mlruns
+      - ./.hf_cache:/app/.hf_cache
+    environment:
+      - HF_HOME=/app/.hf_cache
+      - TRANSFORMERS_CACHE=/app/.hf_cache
+      - TZ=${TZ:-Asia/Ho_Chi_Minh}
+      - FSE_DB=${FSE_DB:-data/fse.db}
     restart: unless-stopped

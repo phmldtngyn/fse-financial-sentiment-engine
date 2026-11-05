@@ -1,0 +1,34 @@
+# ============================================================
+# Lịch các job định kỳ — scripts.scheduled_jobs đọc file này
+# Giờ theo múi giờ Asia/Ho_Chi_Minh. Tắt/bật bằng cờ enabled — không sửa code.
+# ============================================================
+
+timezone: Asia/Ho_Chi_Minh
+
+jobs:
+  # Pipeline hằng ngày: crawl → align → suy luận → tổng hợp S_t → SQLite
+  # BẬT khi run_daily_pipeline.py đã được ghép hoàn chỉnh (hiện còn là stub).
+  daily_pipeline:
+    enabled: false
+    schedule: "18:30"            # sau đóng cửa + chặn tin buổi chiều
+    command: "python -m scripts.run_daily_pipeline"
+
+  # Cắn tin thô mới về aligned + SQLite (chạy được ngay hôm nay)
+  news_alignment:
+    enabled: true
+    schedule: "19:00"
+    command: "python -m scripts.apply_news_alignment --input data/parsed/articles.parquet --to-sqlite data/fse.db"
+
+  # Drift monitor mỗi sáng thứ Bảy
+  drift_check:
+    enabled: true
+    schedule: "07:00"
+    day_of_week: sat
+    command: "python -m src.training.drift_monitor --input data/processed/predictions_daily.parquet --fail-on-drift"
+
+  # Retrain định kỳ qua orchestrator (champion/challenger) ngày 1 hằng tháng
+  monthly_retrain:
+    enabled: true
+    schedule: "06:30"
+    day: 1
+    command: "python -m scripts.retrain_orchestrator --config config/train_config.yaml"

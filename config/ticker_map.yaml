@@ -1,0 +1,40 @@
+# ============================================================
+# Ánh xạ tên công ty / bí danh → mã chứng khoán (ngành ngân hàng HOSE)
+#
+# Matching hoạt động CHỐNG CẢ CÓ DẤU / KHÔNG DẤU và không phân biệt hoa/thường
+# (module ticker_mapping.py tự chuẩn hóa). Thêm/bớt alias tùy ý — không cần sửa code.
+# ============================================================
+
+tickers:
+  - ticker: VCB
+    names: ["Vietcombank", "Ngân hàng TMCP Ngoại thương Việt Nam", "ngân hàng ngoại thương", "ngân hàng TMCP ngoại thương"]
+  - ticker: BID
+    names: ["BIDV", "Ngân hàng Đầu tư và Phát triển Việt Nam", "ngân hàng đầu tư và phát triển", "đầu tư và phát triển Việt Nam"]
+  - ticker: CTG
+    names: ["VietinBank", "Ngân hàng TMCP Công thương Việt Nam", "ngân hàng công thương", "công thương Việt Nam"]
+  - ticker: TCB
+    names: ["Techcombank", "Ngân hàng TMCP Kỹ thương Việt Nam", "kỹ thương"]
+  - ticker: MBB
+    names: ["MB Bank", "Military Bank", "Ngân hàng Quân đội", "ngân hàng TMCP Quân đội"]
+  - ticker: VPB
+    names: ["VPBank", "Ngân hàng Việt Nam Thịnh Vượng", "thịnh vượng Việt Nam"]
+  - ticker: ACB
+    names: ["Ngân hàng Á Châu", "Ngân hàng TMCP Á Châu", "ACB Bank"]
+  - ticker: STB
+    names: ["Sacombank", "Ngân hàng TMCP Sài Gòn Thương Tín", "Sài Gòn thương tín"]
+  - ticker: SHB
+    names: ["Ngân hàng SHB", "Ngân hàng TMCP Sài Gòn - Hà Nội", "Sài Gòn Hà Nội"]
+  - ticker: HDB
+    names: ["HDBank", "Ngân hàng TMCP Phát triển TP.HCM", "phát triển thành phố Hồ Chí Minh"]
+  - ticker: TPB
+    names: ["TPBank", "TienPhongBank", "Ngân hàng Tiên Phong", "tiên phong"]
+  - ticker: VIB
+    names: ["Ngân hàng Quốc tế", "Ngân hàng TMCP Quốc tế Việt Nam", "quốc tế Việt Nam"]
+  - ticker: MSB
+    names: ["MSBank", "Maritime Bank", "Ngân hàng Hàng Hải", "hàng hải Việt Nam"]
+  - ticker: OCB
+    names: ["OCB Bank", "Ngân hàng Phương Đông", "phương Đông"]
+  - ticker: LPB
+    names: ["LPBank", "Ngân hàng Bưu điện Liên Việt", "liên Việt bưu điện"]
+  - ticker: ABB
+    names: ["ABBank", "Ngân hàng TMCP An Bình", "An Bình"]

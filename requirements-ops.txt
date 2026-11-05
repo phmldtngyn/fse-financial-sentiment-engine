@@ -1,0 +1,5 @@
+# Phụ thuộc BỔ SUNG cho bộ vận hành fse-ops (không lặp requirements gốc / requirements-training.txt)
+apscheduler>=3.10     # scheduler service trong docker
+openpyxl>=3.1         # xuất/đọc xlsx (export_for_annotation, grade agreement)
+# scipy>=1.11         # thường đã có cùng scikit-learn trong requirements.txt gốc — dùng cho p-value chính xác
+# pytest>=8           # chỉ cần khi chạy test: pip install pytest

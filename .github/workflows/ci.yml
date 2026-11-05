@@ -1,0 +1,45 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Cài dependencies (torch CPU cho nhanh)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip install -r requirements-training.txt
+          pip install -r requirements-ops.txt pytest
+
+      - name: Unit tests (pytest)
+        run: python -m pytest tests/ -v -x --ignore=tests/smoke_test.py
+
+      - name: Smoke test end-to-end (model mini, không cần GPU)
+        run: python -m tests.smoke_test
+
+      - name: Kiểm tra import các module ops
+        run: |
+          python -c "
+          import sys; sys.path.insert(0, '.')
+          from src.data.market_calendar import assign_session
+          from src.data.ticker_mapping import match_tickers
+          from src.data.dedup import find_duplicates
+          from src.analysis.correlation_stats import benjamini_hochberg
+          from src.storage.sqlite_db import connect
+          from src.training.drift_monitor import build_report
+          print('OPS MODULES IMPORT OK')
+          "
