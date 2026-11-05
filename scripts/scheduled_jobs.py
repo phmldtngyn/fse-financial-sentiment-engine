@@ -17,6 +17,12 @@ import logging
 import shlex
 import subprocess
 import sys
+
+# --- Windows an toàn: khi stdout/stderr là pipe/redirect, Python dùng codepage
+# locale (vd cp1252) và sẽ crash khi in dấu tiếng Việt -> ép UTF-8 bắt buộc.
+for _s in (sys.stdout, sys.stderr):
+    if hasattr(_s, "reconfigure"):
+        _s.reconfigure(encoding="utf-8", errors="replace")
 from pathlib import Path
 
 import yaml

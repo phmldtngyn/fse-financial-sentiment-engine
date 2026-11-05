@@ -21,8 +21,10 @@ PY = sys.executable
 
 
 def run(args: list[str], expect_rc: int = 0):
+    # encoding="utf-8": script con in UTF-8 (đã ép trong script) -> parent cũng phải
+    # decode UTF-8, nếu không Windows sẽ decode cp1252 gây lệch/garbage.
     proc = subprocess.run([PY, "-m", *args], cwd=ROOT, capture_output=True, text=True,
-                          timeout=300)
+                          encoding="utf-8", errors="replace", timeout=300)
     assert proc.returncode == expect_rc, (
         f"rc={proc.returncode}\nSTDOUT:\n{proc.stdout[-2000:]}\nSTDERR:\n{proc.stderr[-2000:]}")
     return proc
