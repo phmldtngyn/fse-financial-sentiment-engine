@@ -1,0 +1,57 @@
+# === Python compiled ===
+*.pyc
+*.pyo
+__pycache__/
+
+# === Virtual env ===
+venv/
+.venv/
+env/
+
+# === Env / secrets ===
+.env
+*.env
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === File lớn, không commit ===
+data/raw/
+checkpoints/
+.hf_cache/
+.cache/
+mlruns/
+data/cache/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# === Data runtime (không commit) ===
+data/*.db
+data/parsed/*.json
+data/processed/*.json
+data/processed/*.pkl
+data/crawler_state.json
+data/gold_standard/
+data/rag_index/index.faiss
+fse_3class.zip
+fse_data.zip
+fse_dapt.zip
+
+# === Ngoại lệ: giữ file dữ liệu chuẩn của repo ===
+!data/processed/train_3class.parquet
+!data/processed/val_3class.parquet
+!data/processed/test_3class.parquet
+!data/processed/banking_daily.parquet
+!data/processed/banking_with_sentiment.parquet
+
+# === Logs ===
+*.log
+logs/

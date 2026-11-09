@@ -1,0 +1,7 @@
+﻿version,pair,n_days,pearson_r,p_pearson,spearman_rho,p_spearman
+Model,S_t - avg_return,860,0.1226,3.13e-04,0.1116,1.04e-03
+Model,|S_t| - log_volume,861,0.0403,2.38e-01,0.0296,3.85e-01
+Model,S_t - avg_range,861,-0.1388,4.38e-05,-0.1028,2.54e-03
+Gemini,S_t - avg_return,1063,0.1874,7.44e-10,0.1554,3.56e-07
+Gemini,|S_t| - log_volume,1064,0.105,5.99e-04,0.0838,6.27e-03
+Gemini,S_t - avg_range,1064,-0.1745,1.01e-08,-0.1129,2.25e-04
