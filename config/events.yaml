@@ -1,0 +1,116 @@
+# Event study — các sự kiện để đo abnormal return quanh ngày event.
+#
+# Cú pháp mỗi event:
+#   - id            : định danh ngắn (snake_case)
+#   - date          : YYYY-MM-DD (UTC+7, ngày giao dịch)
+#   - type          : monetary | earnings | crisis | regulatory | geopolitical
+#   - label_vi      : mô tả tiếng Việt cho báo cáo
+#   - label_en      : mô tả tiếng Anh cho đối chiếu tài liệu
+#   - window_pre    : số ngày giao dịch TRƯỚC event (mặc định 5)
+#   - window_post   : số ngày giao dịch SAU event (mặc định 10)
+#   - expected_dir  : "positive" | "negative" | "neutral" — định tính kỳ vọng
+#   - source        : URL chứng minh event có thật (bắt buộc để có audit trail)
+#   - sector        : banking | all — sector áp dụng (mặc định banking vì bài đang giới hạn)
+
+events:
+  - id: covid_crash_2020_03
+    date: 2020-03-09
+    type: crisis
+    label_vi: "Đợt hoảng loạn COVID-19 đầu tiên trên TTCK Việt Nam"
+    label_en: "COVID-19 panic crash — Vietnam stock market"
+    window_pre: 5
+    window_post: 10
+    expected_dir: negative
+    source: https://vietnamfinance.vn/thi-truong-chung-khoan-9-3-bao-dam-thi-truong-tuong-lai-20200309175246934.htm
+    sector: banking
+
+  - id: nhnn_rate_cut_2020_03
+    date: 2020-03-16
+    type: monetary
+    label_vi: "NHNN cắt lãi suất điều hành đợt COVID (giảm 0.25-0.5 ppt)"
+    label_en: "SBV policy rate cut — COVID response"
+    window_pre: 3
+    window_post: 10
+    expected_dir: positive
+    source: https://www.sbv.gov.vn/webroot/governor/news-detail?newsId=22422
+    sector: banking
+
+  - id: svb_collapse_2023_03
+    date: 2023-03-10
+    type: crisis
+    label_vi: "Silicon Valley Bank sụp đổ — lan tỏa lo ngại ngân hàng toàn cầu"
+    label_en: "Silicon Valley Bank collapse — global banking contagion"
+    window_pre: 3
+    window_post: 10
+    expected_dir: negative
+    source: https://www.reuters.com/business/finance/silicon-valley-bank-shuts-down-bracing-spillover-2023-03-10/
+    sector: banking
+
+  - id: nhnn_rate_hike_2022_09
+    date: 2022-09-22
+    type: monetary
+    label_vi: "NHNN tăng lãi suất điều hành 1 ppt bất thường"
+    label_en: "SBV unscheduled 100bps policy rate hike"
+    window_pre: 3
+    window_post: 10
+    expected_dir: negative
+    source: https://www.sbv.gov.vn/webroot/governor/news-detail?newsId=24901
+    sector: banking
+
+  - id: fed_pivot_2023_12
+    date: 2023-12-13
+    type: monetary
+    label_vi: "Fed phát tín hiệu pivot (kết thúc chu kỳ tăng lãi suất)"
+    label_en: "Fed pivot signal — end of hiking cycle"
+    window_pre: 3
+    window_post: 10
+    expected_dir: positive
+    source: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+    sector: banking
+
+  - id: vcb_q4_earnings_2024
+    date: 2024-01-15
+    type: earnings
+    label_vi: "Vietcombank công bố kết quả kinh doanh Q4/2023"
+    label_en: "Vietcombank Q4 2023 earnings release"
+    window_pre: 5
+    window_post: 5
+    expected_dir: positive
+    source: https://www.vietcombank.com.vn/bao-cao-tai-chinh/
+    sector: banking
+
+  - id: tcb_q4_earnings_2024
+    date: 2024-01-22
+    type: earnings
+    label_vi: "Techcombank công bố kết quả kinh doanh Q4/2023"
+    label_en: "Techcombank Q4 2023 earnings release"
+    window_pre: 5
+    window_post: 5
+    expected_dir: positive
+    source: https://www.techcombank.com.vn/bao-cao-tai-chinh
+    sector: banking
+
+# Phương pháp ước lượng expected return:
+#   - market_model : r_expected = α + β·r_market, ước lượng từ cửa sổ [-250, -30]
+#   - market_adj   : r_expected = r_market (đơn giản hoá)
+#   - mean_adj     : r_expected = mean(returns) trong cửa sổ estimation
+estimation_method: market_model
+estimation_window_pre: 250
+estimation_window_post: 30
+
+# Kiểm định:
+#   - t_test_individual : t-test cho AAR từng ngày
+#   - patell_z          : Patell Z (cross-sectional, robust cross-correlation)
+#   - bmp               : Boehmer-Musumeci-Poulsen (heteroskedasticity-adjusted)
+significance_tests:
+  - t_test_individual
+  - patell_z
+
+# Câu hỏi nghiên cứu cho event study:
+#   1. S_t trong [-window_pre, 0] có tiên đoán CAR[1, window_post] không?
+#   2. Độ lớn |S_t| trong [-window_pre, 0] có tương quan với |CAR| không?
+#   3. Đối với event "negative", S_t có âm không (test xem sentiment có phản ánh đúng)?
+research_questions:
+  - "S_t preceding có tiên đoán CAR_post không? (regression CAR[1,post] ~ S_t[-pre,0])"
+  - "|S_t| có tương quan với |CAR| không?"
+  - "S_t có định hướng đúng (negative event → S_t âm) không?"

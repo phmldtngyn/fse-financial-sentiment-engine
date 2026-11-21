@@ -1,0 +1,22 @@
+# Phụ thuộc thêm cho FSE Engine — Depth Extension Pack
+# Cài: pip install -r requirements-additional.txt
+
+# EGARCH-X / GJR-GARCH-X (script 06)
+arch>=6.1
+
+# VAR + Cholesky IRF đối chiếu (script 05)
+statsmodels>=0.14
+
+# F1, confusion matrix (script 01)
+scikit-learn>=1.3
+
+# Đọc config YAML (script 07, 08)
+pyyaml>=6.0
+
+# Plot (script 01, 02, 05)
+matplotlib>=3.8
+
+# Kiểm định thống kê (đã có trong FSE gốc, liệt kê để bump version)
+scipy>=1.11
+pandas>=2.0
+numpy>=1.24

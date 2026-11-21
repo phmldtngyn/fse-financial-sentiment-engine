@@ -1,0 +1,9 @@
+pair,x,y,pearson_r,pearson_p,spearman_r,spearman_p,n,significant
+S_t vs Volume,S_t,total_volume,0.0612,0.002251,0.0577,0.003949,2492,True
+S_t vs log(Volume),S_t,log_volume,0.0494,0.013641,0.0577,0.003949,2492,True
+S_t vs Return,S_t,avg_return,0.1414,0.0,0.1134,0.0,2492,True
+S_t vs Intraday Range,S_t,avg_range,-0.1223,0.0,-0.0756,0.000159,2492,True
+S_t vs |Return|,S_t,abs_return,-0.077,0.000119,-0.0544,0.006652,2492,True
+|S_t| vs Intraday Range,abs_S_t,avg_range,0.0519,0.009597,0.0264,0.188475,2492,True
+|S_t| vs log(Volume),abs_S_t,log_volume,0.1595,0.0,0.1607,0.0,2492,True
+|S_t| vs |Return|,abs_S_t,abs_return,0.0514,0.010314,0.0203,0.30999,2492,True

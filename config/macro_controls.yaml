@@ -1,0 +1,75 @@
+# Macro controls cho partial correlation và IRF.
+# Các biến thị trường chung dùng để kiểm tra xem sentiment có sức giải thích
+# GIA TĂNG (incremental) sau khi partial out các yếu tố vĩ mô hay không.
+#
+# Cột "source" cho biết biến lấy từ đâu trong pipeline FSE:
+#   - vietstock   : do scripts/fetch_price_vietstock.py fetch
+#   - fse_internal : được build từ data/processed (vd VNINDEX từ basket ngân hàng)
+#   - manual      : người dùng tự điền vào data/raw/macro.parquet
+#
+# Cột "transform" áp dụng trước khi đưa vào regression:
+#   - level       : giữ nguyên
+#   - log         : log(x) — cho volume, foreign_net_buy (abs)
+#   - diff_1      : sai phân bậc 1 (cho I(1) → I(0))
+#   - pct_1       : % change 1 kỳ
+
+variables:
+  - name: vnindex_return
+    source: vietstock
+    column: vnindex_close
+    transform: pct_1
+    description: "Lợi suất VNINDEX ngày T, kiểm soát hiệu ứng thị trường chung."
+    required: true
+
+  - name: vix
+    source: manual
+    column: vix_close
+    transform: level
+    description: "VIX (chỉ số sợ hãi) — biến ngoại sinh toàn cầu, ảnh hưởng vol VN."
+    required: false
+
+  - name: dxy_return
+    source: manual
+    column: dxy_close
+    transform: pct_1
+    description: "Chỉ số dollar index (DXY) — tác động qua kênh tỷ giá và dòng ngoại."
+    required: false
+
+  - name: foreign_net_buy_log
+    source: vietstock
+    column: foreign_net_buy_banking
+    transform: log
+    description: "log(|foreign net buying|) nhóm ngân hàng — dòng ngoại là driver chính."
+    required: true
+
+  - name: vnindex_vol
+    source: vietstock
+    column: vnindex_volume
+    transform: log
+    description: "log(khối lượng giao dịch VNINDEX) — proxy thanh khoản thị trường."
+    required: false
+
+  - name: usd_vnd_return
+    source: manual
+    column: usd_vnd
+    transform: pct_1
+    description: "% thay đổi tỷ giá USD/VND — kênh truyền chính sách NHNN."
+    required: false
+
+# Nhóm biến sẽ partial out khi test partial correlation.
+# Ưu tiên: vnindex_return + foreign_net_buy_log (required=true) là minimum viable.
+partial_out:
+  - vnindex_return
+  - foreign_net_buy_log
+
+# Trong incremental regression target ~ S_t + macro, ta cũng include sentiment lags
+# để kiểm tra momentum (sentiment có thể lag effect).
+include_sentiment_lags: [1, 3, 5]
+
+# Kỳ vọng định tính (để dễ đọc báo cáo): sentiment có nên còn significant sau khi
+# partial out macro không? Đây chỉ là comment, không phải tham số chạy.
+expectation: |
+  Nếu sentiment còn significant (p<0.05) sau khi partial out vnindex_return và
+  foreign_net_buy_log → sentiment mang thông tin GIA TĂNG, không chỉ đại diện
+  cho thị trường chung. Đây là phép thử quyết định để chuyển từ "correlated"
+  sang "incrementally informative" — câu hỏi phản biện số 1 cho bài correlation.
